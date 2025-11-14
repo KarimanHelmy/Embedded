@@ -1,9 +1,5 @@
 /*
- * SRAM.c
- *
- * Created: 10.09.2016 15:05:32
- *  Author: Whiskey Dicks
- */
+
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -14,24 +10,25 @@
 #define SRAM_FIRST_ADDRESS (volatile char*)0x1800	//Start address fpr the SRAM
 #endif
 
+    //Enable SRAM and masking the JTAG pins so it doesn't interfere with the JTAG pins 
 void SRAM_init() {
-    MCUCR = (1 << SRE); // Enable SRAM i ATmega162
-    SFIOR = (1 << XMM2); // Maskerer PC4-PC7 på ATmega162. Dvs passer på at vi ikke kuker med JTAG-pinnene. Sjekk "Table 4", side 32 i ATmega162-databladet.
+    MCUCR = (1 << SRE); 
+    SFIOR = (1 << XMM2); 
 }
-
+// Pointer to array containing all addresses which we can write in 
 int SRAM_write(uint16_t address, char data) {
 
     if (address > 0x7FF) {
-        printf("SRAM error, trying to write to an address that is too big\n");
+        printf("error trying to write in an address\n");
         return EXIT_FAILURE;
     }
 
-    volatile char* ext_ram = SRAM_FIRST_ADDRESS; //Create a pointer to the array of all addresses we will write to. SRAM starting at 0x1800. ext_ram[0x7FF] is maximum because 0x1800 + 0x7FF = 0x1FFF! 
+    volatile char* ext_ram = SRAM_FIRST_ADDRESS;  
     ext_ram[address] = data;
 
     return 0;
 }
-
+//read an address
 char SRAM_read(uint16_t address) {
 
     if (address > 0x7FF) {
@@ -43,7 +40,7 @@ char SRAM_read(uint16_t address) {
     return ext_ram[address];
 
 }
-
+//
 void SRAM_test(void) {
 
     volatile char *ext_ram = (char *) 0x1800; // Start address for the SRAM
@@ -82,5 +79,6 @@ void SRAM_test(void) {
         }
     }
     printf("retrieval_errors  ...%d", retrieval_errors);
-    //retrieval_errors++;
+    
+
  }  
