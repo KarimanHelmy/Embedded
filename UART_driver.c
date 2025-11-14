@@ -1,11 +1,4 @@
-/*
- * UART_driver.c
- *
- * Created: 03.09.2016 16:32:20
- *  Author: Whiskey dicks
- */
 
-// UART = Universal Asynchronous Receiver/Transmitter
 
 
 #include <avr/io.h>
@@ -14,14 +7,13 @@
 #include "bit_macros.h"
 #include "UART_driver.h"
 
-#define BAUD 9600 //Baud rate = symbols pr second.
+#define BAUD rate
 
 void UART_init(unsigned long clock_speed){
 
-	//unsigned char ubrr = (clock_speed / (baud * 16)) - 1;	//Should be, and is, 31
+	//assigning variable to be 31 instead of putting the equestion 
 	unsigned long ubrr = 31;
 
-    /******************************************************************************/
     
     UBRR1H = ubrr >> 8;			// Save the most significant bits (4 most sign. bits out of 12 bits)
 	UBRR1L = ubrr;				// Save the least sign. bits (8 least sign. bits)
@@ -31,7 +23,7 @@ void UART_init(unsigned long clock_speed){
 	
 	/* Enable receiver and transmitter */
 	set_bit(UCSR1B,RXEN1);		//RXEN enables the receiver.
-	set_bit(UCSR1B,TXEN1);//TXEN enables the transmitter.
+	set_bit(UCSR1B,TXEN1);
 	fdevopen(put_char, get_char); 
 }
 
@@ -48,6 +40,7 @@ char get_char(FILE *stream){
 
 	return UDR1;
 }
+
 
 
 
