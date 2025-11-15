@@ -1,16 +1,12 @@
 /*
  * CAN.c
  *
- * Created: 13.10.2016 17:26:28
- *  Author: Whiskey Dicks
- */
-
-
-// 
+ * Created: 13.10.2025
+ *  Author: Mohamed Abosreea , Kariman Helmy , Marwa Elbadawy
+ */ 
 
 #include "CAN.h"
 #include "bit_macros.h"
-#include "joystick_driver.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -25,10 +21,8 @@ ISR(INT0_vect){
 
 void can_init(uint8_t mode){
     
-
 	mcp_2515_init(mode);
 
-	
 	mcp_2515_write(MCP_CANINTE, MCP_RX_INT);
 
 	// Disable global interrupts
@@ -40,8 +34,6 @@ void can_init(uint8_t mode){
 	set_bit(GICR,INT0);
 	// Enable global interrupts
 	sei();
-	
-	
 }
 
 uint8_t can_interrupt(){
@@ -54,10 +46,10 @@ uint8_t can_interrupt(){
 
 can_message can_handle_messages(){
 	uint8_t v[2] = {0};
-	
+	// Select which mailbox is used
 	can_int_vect(v);
 	can_message message1;
-	
+	// if message is recievced in mailbox 0
 	if (v[0]){
 		can_message_receive(0, &message1);
 		mcp_2515_bit_modify(MCP_CANINTF, 1, 0);
@@ -65,12 +57,11 @@ can_message can_handle_messages(){
 		if (!v[1]){
 			flag = 0;
 		}
-        printf(message1.data);
 		return message1;
 	}
 	
 	can_message message2;
-	
+	// if message is recievced in mailbox 1
 	if (v[1]){
 		can_message_receive(1, &message2);
 		mcp_2515_bit_modify(MCP_CANINTF, 2, 0);
@@ -78,7 +69,6 @@ can_message can_handle_messages(){
 		if (!v[0]){
 			flag = 0;
 		}
-        printf(message2.data);
 		return message2;
 	}
 	
@@ -136,34 +126,19 @@ int can_transmit_complete(int buffer_number){
 void can_message_receive(int rec_buff_num, can_message* received_message){
 	uint8_t id_high = mcp_2515_read(MCP_RXB0SIDH + 16 * rec_buff_num);
 	uint8_t id_low = mcp_2515_read(MCP_RXB0SIDL + 16 * rec_buff_num);
-	uint8_t mask = 0b11100000;
-	id_low = (id_low & mask);
+	id_low = (id_low & 0b11100000);
 	received_message->id = 0b1000*id_high + id_low/0b100000;
 	
 	uint8_t data_length = mcp_2515_read(MCP_RXB0DLC + 16 * rec_buff_num);
-	mask = 0b1111;
-	received_message->length = (data_length & mask);
+	received_message->length = (data_length & 0b1111);
 	
 	for (uint8_t byte = 0; byte < data_length; byte++) {
 		received_message->data[byte] = mcp_2515_read(MCP_RXB0DM + byte + 16 * rec_buff_num);
 	}
-	
-	
 }
 
 void can_int_vect(int* v) { 
 	uint8_t int_flag = mcp_2515_read(MCP_CANINTF);
 	v[0] = (int_flag & MCP_RX0IF);
 	v[1] = (int_flag & MCP_RX1IF);
-}
-
-int can_error(void){
-	uint8_t err = mcp_2515_read(MCP_CANINTF);
-	uint8_t mask = 0b00100000;
-	if (mask & err == mask){
-		printf("Error in CAN!\n");
-		mcp_2515_bit_modify(MCP_CANINTF,mask,0);
-		return 1;
-	}
-	return 0;
 }

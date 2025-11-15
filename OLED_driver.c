@@ -1,4 +1,8 @@
-
+/*
+ * OLED_driver.c
+ *
+ *  Author: Mohamed Abosreea , Kariman Helmy , Marwa Elbadawy
+ */
 #include <stdint.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -29,10 +33,7 @@ volatile char* ext_oled_data = OLED_DATA_ADDRESS;
 
 volatile oled_position_t position;
 
-volatile int fontSize = 8;
-const char* const font[] PROGMEM = {font_4x6, font_5x7, font_5x7w, font_8x8};
-int current_font = FONT_8X8;
-
+// This function is used to check if we reached the borders of the OLED
 void oled_is_out_of_bounds() {
 	if (position.col > 127) {
 		position.col -= 128;
@@ -43,32 +44,24 @@ void oled_is_out_of_bounds() {
 	}
 }
 
-void switch_font(fontName name) {
-	current_font = name;
-	switch(name){
-		case(FONT_4X6):
-			fontSize = 4;
-		case(FONT_5X7):
-			fontSize = 5;
-		case(FONT_5X7W):
-			fontSize = 5;
-		case(FONT_8X8):
-			fontSize = 8;
-	}
-}
-
 void write_command(uint8_t command){
+	// Select sending command to the data-commant line
     clear_bit(PORTD,PD0);
+	// Activate OLED chip select
     clear_bit(PORTB, PB4);
     SPI_write(command);
+	// deactivate OLED chip select
     set_bit(PORTB, PB4);
 
 }
 
 void write_data(uint8_t data){
+	// Select sending data to the data-commant line
     set_bit(PORTD,PD0);
+	// Activate OLED chip select
     clear_bit(PORTB, PB4);
 	SPI_write(data);
+	// deactivate OLED chip select
     set_bit(PORTB, PB4);
 }
 
@@ -130,44 +123,10 @@ void oled_align_centre(char* title) {
 	oled_goto_column(64- fontSize*strlen(title)/2);
 }
 
-
-/*
-void oled_init(){
-    SPI_init();
-    set_bit(DDRD,PD0);
-    set_bit(PORTD,PD0);
-	write_command(0xae); // display off
-	write_command(0xa1); //segment remap	/A0 flips text horizontally
-	write_command(0xda); //common pads hardware: alternative
-	write_command(0x12);
-	write_command(0xc8); //common output scan direction:com63~com0
-	write_command(0xa8); //multiplex ration mode:63
-	write_command(0x3f);
-	write_command(0xd5); //display divide ratio/osc. freq. mode
-	write_command(0x80);
-	write_command(0x81); //contrast control
-	write_command(0x50);
-	write_command(0xd9); //set pre-charge period
-	write_command(0x21);
-	
-	oled_set_adressing_mode(HORIZONTAL_MODE);
-	
-	write_command(0xdb); //VCOM deselect level mode
-	write_command(0x30);
-	write_command(0xad); //master configuration
-	write_command(0x00);
-	write_command(0xa4); //out follows RAM content
-	write_command(0xa6); //set normal display
-	write_command(0xaf); // display on
-	//oled_reset();
-	
-}
-*/
 void oled_init(){
     SPI_init();
     set_bit(DDRD, PD0);      // PD0 is used for Data/Command line
-    set_bit(DDRB , PB4); // slave select for the OLED
-    //set_bit(PORTD, PD0);     // e.g., drive RES# high after reset
+    set_bit(DDRB , PB4);     // slave select for the OLED
 
     write_command(0xAE);     // Display OFF
 
@@ -201,17 +160,6 @@ void oled_init(){
     write_command(0xA4);     // Output follows RAM content (not forced ON)
     write_command(0xA6);     // Normal display (not inverted)
     write_command(0xAF);     // Display ON
-}
-void oled_reset(){
-	
-	for (int line = 0; line < 8; line++) {
-		oled_clear_line(line);
-	}
-	oled_home();
-}
-
-void oled_home(){
-	oled_pos(0,0);
 }
 
 void oled_goto_line(int line){

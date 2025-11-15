@@ -1,8 +1,7 @@
 /*
  * SPI_driver.h
  *
- * Created: 13.10.2016 09:09:09
- *  Author: Whiskey Dicks
+ *  Author: Mohamed Abosreea , Kariman Helmy , Marwa Elbadawy
  */
 
 #ifndef SPI_DRIVER_H_
