@@ -27,7 +27,7 @@
 int main(void)
 {
     UART_init(9600);
-    adc_init ();
+    ADC_init ();
     joystick_init();
     oled_init();
 	oled_menu_init();
@@ -51,3 +51,4 @@ int main(void)
 	}
     
 }
+
