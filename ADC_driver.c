@@ -55,7 +55,7 @@ uint8_t ADC_read(uint8_t channel) {
 }
 
 /*
- *  read analog values all */
+ *  read analog values all 
 void ADC_read_all(uint8_t * ret_vals) {
         uint8_t i;
 
@@ -68,8 +68,9 @@ void ADC_read_all(uint8_t * ret_vals) {
         for (i=0;i<4;i++) {
                
                 ret_vals[i] = *ext_adc;
-        }
+        }*/
 }
 
                               
+
 
