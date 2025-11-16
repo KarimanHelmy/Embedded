@@ -1,19 +1,16 @@
 /*
  * joystick_driver.h
- *
- * Created: 22.09.2016 10:54:30
- *  Author: Whiskey Dicks
  */ 
 
 #ifndef JOYSTICK_DRIVER_H_
 #define JOYSTICK_DRIVER_H_
 
 void joystick_init();
-void joystick_manual_calibrate(void);
+void joystick_manual_calibration(void);
 
-typedef enum {JOYSTICK_X, JOYSTICK_Y, LEFT_SLIDER, RIGHT_SLIDER} state;
+typedef enum {JOYSTICK_X_AXIS, JOYSTICK_Y_AXIS, LEFT_SLIDER, RIGHT_SLIDER} state;
 
-typedef enum {JOYSTICKBUTTON, LBUTTON, RBUTTON} usb_button_t;
+typedef enum {JOYSTICK_BUTTON, L_BUTTON, R_BUTTON} usb_button_t;
 
 int joystick_button(usb_button_t button);
 
@@ -28,10 +25,10 @@ typedef struct {
 	int y;
 } joystick_position_t;
 
-joystick_position_t joystick_get_position(void);
-joystick_direction_t joystick_get_direction(void);
+joystick_position_t joystick_read_position(void);
+joystick_direction_t joystick_read_direction(void);
 
-int slider_get_left(void);
-int slider_get_right(void);
+int slider_read_left(void);
+int slider_read_right(void);
 
 #endif /* JOYSTICK_DRIVER_H_ */
