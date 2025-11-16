@@ -17,7 +17,7 @@
 /**
  *     Initliaze ADC, masking unused bit , enable external memory , configure clovk and busy pin
  */
-void adc_init (void) {
+void  ADC_init (void) {
         MCUCR |= (1 << SRE ); 
         SFIOR |= (1 << XMM2 ); 
 
@@ -38,7 +38,7 @@ void adc_init (void) {
 /**
  *      Read analog value from the given channel of the ext. ADC
  */
-uint8_t adc_read(uint8_t channel) {
+uint8_t ADC_read(uint8_t channel) {
         uint8_t ret_val = 0, i;
 
         volatile uint8_t * ext_adc = ( uint8_t *) ADC_ADDRESS ;
@@ -56,7 +56,7 @@ uint8_t adc_read(uint8_t channel) {
 
 /*
  *  read analog values all */
-void adc_read_all(uint8_t * ret_vals) {
+void ADC_read_all(uint8_t * ret_vals) {
         uint8_t i;
 
          volatile uint8_t * ext_adc = ( uint8_t *) ADC_ADDRESS ;
@@ -72,3 +72,4 @@ void adc_read_all(uint8_t * ret_vals) {
 }
 
                               
+
