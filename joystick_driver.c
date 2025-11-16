@@ -39,67 +39,49 @@ uint8_t slide_right_V_max = 255;
 
 // timer0 overflow
 
-void get_joystick_values() {
+void read_joystick_values() {
 
     char data_char;
     int32_t data;
-    state contr_state = JOYSTICK_X;
+    state contr_state = JOYSTICK_X_AXIS;
     
     for (char i = 0; i < 4;i++)
         switch (contr_state) {
-            case(JOYSTICK_X):
-                data_char = adc_read(CHANNEL0);
+            case(JOYSTICK_X_AXIS):
+                data_char = ADC_read(CHANNEL0);
                 data = (int32_t) data_char;
-                //printf("x: %d \r\n",  data_char);
                 x_pos = ((data - x_offset)*200) / (joy_x_V_max - joy_x_V_min);
-                contr_state = JOYSTICK_Y;
-                //printf("x position is %d\n\r" , x_pos);
-                //_delay_ms(1);
+                contr_state = JOYSTICK_Y_AXIS;
                 break;
-            case(JOYSTICK_Y):
-                data_char = adc_read(CHANNEL1);
+            case(JOYSTICK_Y_AXIS):
+                data_char = ADC_read(CHANNEL1);
                 data = (int32_t) data_char;
-                //printf("y: %d \r\n",  data_char);
                 y_pos = ((data - y_offset)*200) / (joy_y_V_max - joy_y_V_min);
                 contr_state = LEFT_SLIDER;
-                //printf("y position is %d\n\r" , y_pos);
-               // _delay_ms(1);
                 break;
             case(LEFT_SLIDER):
-                data_char = adc_read(CHANNEL2);
+                data_char = ADC_read(CHANNEL2);
                 data = (int32_t) data_char;
                 sliders.left = (data * 200) / (slide_left_V_max - slide_left_V_min) - 100;
                 contr_state = RIGHT_SLIDER;
-                //_delay_ms(1);
                 break;
             case(RIGHT_SLIDER):
-                data_char = adc_read(CHANNEL3);
+                data_char = ADC_read(CHANNEL3);
                 data = (int32_t) data_char;
                 sliders.right = (data * 200) / (slide_right_V_max - slide_right_V_min) - 100;
-                //_delay_ms(1);
                 break;
         }
 }
-void joystick_auto_calibrate(){
-
-    x_offset= adc_read(CHANNEL0);
-    //_delay_ms(1);
-    
-
-    y_offset= adc_read(CHANNEL1);
-    //_delay_ms(1);
-
+void joystick_autocalibrate(){
+    x_offset= ADC_read(CHANNEL0);
+    y_offset= ADC_read(CHANNEL1);
 }
-
+//set up pull up resistor
 void joystick_init() {
-
-    // Button inputs:
-    clear_bit(DDRD, PD3); //Joystick button
-    set_bit(PORTD, PD3); //Set pull-up resistor
-    //clear_bit(DDRB, PB1); //Right button
-    //clear_bit(DDRB, PB2); //Left button
+    clear_bit(DDRD, PD3); 
+    set_bit(PORTD, PD3); 
     joystick_auto_calibrate();
-    get_joystick_values();
+    read_joystick_values();
 
 }
 
@@ -110,32 +92,32 @@ void joystick_manual_calibrate() {
 int joystick_button(usb_button_t button) {
 
     switch (button) {
-        case JOYSTICKBUTTON:
+        case JOYSTICK_BUTTON:
             return !test_bit(PIND, PIND3);
-        case LBUTTON:
+        case L_BUTTON:
             return test_bit(PINB, PINB2);
-        case RBUTTON:
+        case R_BUTTON:
             return test_bit(PINB, PINB1);
         default:
-            printf("Not valid button");
+            printf("Not a valid button retry");
             return EXIT_FAILURE;
     }
 
 }
 
 
-joystick_position_t joystick_get_position() {
+joystick_position_t joystick_read_position() {
     joystick_position_t return_pos;
     
-    get_joystick_values();
+    read_joystick_values();
     return_pos.x = x_pos;
     return_pos.y = y_pos;
     return return_pos;
 }
 
-joystick_direction_t joystick_get_direction() {
+joystick_direction_t joystick_read_direction() {
 
-    joystick_position_t current_pos = joystick_get_position();
+    joystick_position_t current_pos = joystick_read_position();
     int x = x_pos;
     int y = y_pos;
 
@@ -159,12 +141,12 @@ joystick_direction_t joystick_get_direction() {
     }
 }
 
-int slider_get_left(void) {
-    get_joystick_values();
+int slider_read_left(void) {
+    read_joystick_values();
     return sliders.left;
 }
 
-int slider_get_right(void) {
-    get_joystick_values();
+int slider_read_right(void) {
+    read_joystick_values();
     return sliders.right;
 }
