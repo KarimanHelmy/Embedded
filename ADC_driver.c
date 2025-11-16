@@ -1,9 +1,4 @@
-/*
- * ADC.c
- *
- * Created: 15.09.2016 15:46:33
- *  Author: Whiskey Dicks
- */
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <avr/io.h>
@@ -16,19 +11,19 @@
 #define ADC_ADDRESS (volatile char*)0x1400
 #endif
 
-//volatile char* ext_adc = ADC_ADDRESS; //Create a pointer to the array of all addresses we will write to. ADC starting at 0x1400.
+//pointer to array of external adc 
 #define ADC_BUSY        !(PIND & (1<<PD4))
 
 /**
- *      Initializes the ext. ADC
+ *     Initliaze ADC, masking unused bit , enable external memory , configure clovk and busy pin
  */
 void adc_init (void) {
-        MCUCR |= (1 << SRE ); // enable XMEM
-        SFIOR |= (1 << XMM2 ); // mask unused bits
+        MCUCR |= (1 << SRE ); 
+        SFIOR |= (1 << XMM2 ); 
 
-        /* configure CLK signal and BUSY pin */
+    
 
-        /* configure Timer Counter Control register 1A */
+
         TCCR1A |= (1<< WGM11) |(1<< WGM10) | (1<< COM1A0);
         TCCR1B |= (1<< WGM13) | (1<< WGM12) | (1<< CS10);
 
@@ -47,33 +42,33 @@ uint8_t adc_read(uint8_t channel) {
         uint8_t ret_val = 0, i;
 
         volatile uint8_t * ext_adc = ( uint8_t *) ADC_ADDRESS ;
-        /* WR is set implicitly by writing to the address range */
+        
         *ext_adc = 0x00;
 
-        while(ADC_BUSY); // blocking function!
+        while(ADC_BUSY); 
 
         for (i=0;i<=channel;i++) {
-                /* RD is set implicitly by reading from the address range */
+                
                 ret_val = *ext_adc;
         }
         return ret_val;
 }
 
 /*
- *  Read analog values of all channels from the ext. ADC
- */
+ *  read analog values all */
 void adc_read_all(uint8_t * ret_vals) {
         uint8_t i;
 
          volatile uint8_t * ext_adc = ( uint8_t *) ADC_ADDRESS ;
-         /* WR is set implicitly by writing to the address range */
+         
          *ext_adc = 0x00;
 
-        while(ADC_BUSY); // blocking function!
+        while(ADC_BUSY); 
 
         for (i=0;i<4;i++) {
-                /* RD is set implicitly by reading from the address range */
+               
                 ret_vals[i] = *ext_adc;
         }
 }
+
                               
