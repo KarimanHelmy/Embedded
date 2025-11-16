@@ -1,4 +1,4 @@
-/*
+/*This is SRAM function*/
 
 
 #include <stdlib.h>
@@ -40,7 +40,7 @@ char SRAM_read(uint16_t address) {
     return ext_ram[address];
 
 }
-//
+//TEST the Sram is working, and check if there is any error during read.write cycle 
 void SRAM_test(void) {
 
     volatile char *ext_ram = (char *) 0x1800; // Start address for the SRAM
@@ -48,33 +48,31 @@ void SRAM_test(void) {
     uint16_t write_errors = 0;
     uint16_t retrieval_errors = 0;
     printf("Starting SRAM test...\r\n");
-    // rand() stores some internal state, so calling this function in a loop will
-    // yield different seeds each time (unless srand() is called before this function)
+ 
     uint16_t seed = rand();
-    // Write phase: Immediately check that the correct value was stored
     srand(seed);
     for (uint16_t i = 0; i < ext_ram_size; i++) {
         uint8_t some_value = rand();
-        //_delay_ms(5);
+   
         ext_ram[i] = some_value;
-        //_delay_ms(5);
+ 
         uint8_t retreived_value = ext_ram[i];
-        //_delay_ms(5);
+  
         if (retreived_value != some_value) {
-            printf("Write phase error: ext_ram[%4d] = %02X (should be %02X)\r\n", i, retreived_value, some_value);
+            printf("Write  error: ext_ram[%4d] = %02X (should be %02X)\r\n", i, retreived_value, some_value);
             write_errors++;
         }
     }
     printf("Write errorrs ...%d\r\n", write_errors);
-    // Retrieval phase: Check that no values were changed during or after the write phase
-    srand(seed); // reset the PRNG to the state it had before the write phase
+    
+    srand(seed);
     for (uint16_t i = 0; i < ext_ram_size; i++) {
         uint8_t some_value = rand();
-        //_delay_ms(5);
+
         uint8_t retreived_value = ext_ram[i];
-        //_delay_ms(5);
+
         if (retreived_value != some_value) {
-            printf("Retrieval phase error: ext_ram[%4d] = %02X (should be %02X)\r\n", i, retreived_value, some_value);
+            printf("Retrieval  error: ext_ram[%4d] = %02X (should be %02X)\r\n", i, retreived_value, some_value);
             retrieval_errors++;
         }
     }
@@ -82,3 +80,4 @@ void SRAM_test(void) {
     
 
  }  
+
