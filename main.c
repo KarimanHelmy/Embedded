@@ -35,20 +35,21 @@ int main(void)
 	joystick_position_t position;
     can_init(MODE_NORMAL);
 	uint8_t id = 0;
-    printf("Starting Ping-Pong Game\r\n");
+    printf("Ping Pong Game loading please wait..\r\n");
 	while(1){
-		position = joystick_get_position();
+		position = joystick_read_position();
 		joy_pos.data[0] = position.x;
 		joy_pos.data[1] = position.y;
-        joy_pos.data[2] = joystick_button(JOYSTICKBUTTON);
+        joy_pos.data[2] = joystick_button(JOYSTICK_BUTTON);
 		joy_pos.length = 3;
 		joy_pos.id = id;
        
-		printf("x: %d, y: %d , button: %d \r\n", joy_pos.data[0], joy_pos.data[1],  joy_pos.data[2]);
+		printf("X: %d, Y: %d , Button: %d \r\n", joy_pos.data[0], joy_pos.data[1],  joy_pos.data[2]);
 
 		can_message_send(&joy_pos);
 		_delay_ms(50);
 	}
     
 }
+
 
