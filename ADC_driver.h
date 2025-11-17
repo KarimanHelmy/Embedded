@@ -5,7 +5,7 @@
 #define ADC_H_
 
 typedef enum {CHANNEL0,CHANNEL1,CHANNEL2,CHANNEL3}channel_t;
-void adc_init (void);
+void ADC_init (void);
 
 /**
  *      Read analog value from a certain channel 
@@ -18,5 +18,6 @@ uint8_t ADC_read(uint8_t channel);
 /*void adc_read_all(uint8_t * ret_vals);*/
 
 #endif /* ADC_H_ */
+
 
 
