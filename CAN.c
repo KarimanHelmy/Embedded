@@ -14,11 +14,12 @@
 
 volatile int flag = 0;
 
-
+// ISR for external interrupt INT0: sets a flag when a CAN interrupt occurs.
 ISR(INT0_vect){
 	flag = 1;
 }
 
+// Initializes the MCP2515 CAN controller and configures INT0 for CAN receive interrupts.
 void can_init(uint8_t mode){
     
 	mcp_2515_init(mode);
@@ -36,6 +37,7 @@ void can_init(uint8_t mode){
 	sei();
 }
 
+// Returns 1 if a CAN interrupt has occurred since last check, otherwise 0.
 uint8_t can_interrupt(){
 	if (flag){	
 		flag = 0;
@@ -44,6 +46,7 @@ uint8_t can_interrupt(){
 	return 0;
 }
 
+// Determines which RX buffer triggered the interrupt, reads and returns the received CAN message.
 can_message can_handle_messages(){
 	uint8_t v[2] = {0};
 	// Select which mailbox is used
@@ -75,6 +78,7 @@ can_message can_handle_messages(){
 	return message1;
 }
 
+// Sends a CAN message using one of the three transmit buffers in a round-robin manner.
 void can_message_send(can_message* message){
 	static int buffer_number = 0;
 	
@@ -113,6 +117,7 @@ void can_message_send(can_message* message){
 	
 }
 
+// Checks if the given transmit buffer has completed sending its CAN frame (1 = complete, 0 = busy).
 int can_transmit_complete(int buffer_number){
 	uint8_t transmit_flag = mcp_2515_read(MCP_CANINTF);
 	uint8_t interrupt_bits = (transmit_flag & (MCP_TX0IF + buffer_number*2));
@@ -123,6 +128,7 @@ int can_transmit_complete(int buffer_number){
 	return 1;
 }
 
+// Reads a CAN message from the specified RX buffer and stores ID, length, and data into received_message.
 void can_message_receive(int rec_buff_num, can_message* received_message){
 	uint8_t id_high = mcp_2515_read(MCP_RXB0SIDH + 16 * rec_buff_num);
 	uint8_t id_low = mcp_2515_read(MCP_RXB0SIDL + 16 * rec_buff_num);
@@ -137,6 +143,7 @@ void can_message_receive(int rec_buff_num, can_message* received_message){
 	}
 }
 
+// Reads CAN interrupt flags and sets v[0] and v[1] if RX buffer 0 or 1 has a pending message.
 void can_int_vect(int* v) { 
 	uint8_t int_flag = mcp_2515_read(MCP_CANINTF);
 	v[0] = (int_flag & MCP_RX0IF);
