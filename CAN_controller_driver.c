@@ -11,20 +11,24 @@
 #include <avr/io.h>
 #include <avr/delay.h>
 
+// Activates the MCP2515 SPI slave by pulling the CS pin (PB1) low.
 void mcp_activate_slave(){
     /* Activate Slave Select */
     clear_bit(PORTB, PB1);
 }
 
+// Deactivates the MCP2515 SPI slave by pulling the CS pin (PB1) high.
 void mcp_deactivate_slave(){
     /* Deactivate Slave Select */
     set_bit(PORTB, PB1);
 }
 
+// Sets the operating mode of the MCP2515 by writing to the CANCTRL register.
 void mcp_2515_set_mode(uint8_t mode){
     mcp_2515_write(MCP_CANCTRL, mode);
 }
 
+// Initializes the MCP2515: configures SPI, resets the chip, sets bit timing, enables RX interrupts, and switches to the requested mode.
 uint8_t mcp_2515_init(uint8_t mode) {
     // CAN CS pin as output
     set_bit(DDRB, PB1); 
@@ -60,7 +64,7 @@ uint8_t mcp_2515_init(uint8_t mode) {
     mcp_2515_bit_modify(MCP_EFLG, 0xFF, 0x00);
     mcp_2515_bit_modify(MCP_TXB0CTRL, 0x08, 0x00); // Clear TXREQ bit
 
-    // Set requested mode (e.g., NORMAL)
+    // Set requested mode 
     mcp_2515_set_mode(mode);
     _delay_ms(10);
     // Read current state
@@ -74,7 +78,7 @@ uint8_t mcp_2515_init(uint8_t mode) {
     return 0;
 }
 
-
+// Sends a reset command to the MCP2515 over SPI and waits briefly for it to restart.
 void mcp_2515_reset(){
     mcp_activate_slave();
     SPI_transfer(MCP_RESET);
@@ -82,16 +86,18 @@ void mcp_2515_reset(){
     _delay_ms(10);	// Small delay after reset
 }
 
+// Reads a single register from the MCP2515 at the given address via SPI and returns its value.
 uint8_t mcp_2515_read(uint8_t address) {
     mcp_activate_slave();                // CS low
     SPI_transfer(MCP_READ);              // Send read command (0x03)
     SPI_transfer(address);               // Send register address
     uint8_t data = SPI_transfer(0x00);   // Send dummy byte, read data
 
-    mcp_deactivate_slave();                  // CS high
+    mcp_deactivate_slave();              // CS high
     return data;
 }
 
+// Writes a single byte to the MCP2515 register at the given address via SPI.
 void mcp_2515_write(uint8_t address, uint8_t data) {
     mcp_activate_slave();
     SPI_transfer(MCP_WRITE);     // 0x02
@@ -100,12 +106,14 @@ void mcp_2515_write(uint8_t address, uint8_t data) {
     mcp_deactivate_slave();
 }
 
+// Issues a Request To Send (RTS) command to the MCP2515 for the specified transmit buffer.
 void mcp_2515_request_to_send(char buffer) {
     mcp_activate_slave();
     SPI_transfer(buffer);  // Buffer should be MCP_RTS_TX0 / TX1 / TX2 or combination
     mcp_deactivate_slave();
 }
 
+// Modifies specific bits in an MCP2515 register using a mask and new data value (read/modify/write helper).
 void mcp_2515_bit_modify(uint8_t address, uint8_t mask, uint8_t data) {
     mcp_activate_slave();
     SPI_transfer(MCP_BITMOD);
