@@ -10,12 +10,13 @@ void adc_init (void);
 /**
  *      Read analog value from a certain channel 
  */
-uint8_t adc_read(uint8_t channel);
+uint8_t ADC_read(uint8_t channel);
 
 /**
  *Read analog value from all chanels
  */
-void adc_read_all(uint8_t * ret_vals);
+/*void adc_read_all(uint8_t * ret_vals);*/
 
 #endif /* ADC_H_ */
+
 
