@@ -10,6 +10,7 @@
 #include "bit_macros.h"
 #include "SPI_driver.h"
 
+// Initializes the SPI peripheral in Master mode: configures pins, sets clock to f_clk/16, and enables SPI.
 void SPI_init(){
 	
 	/* Set SS, MOSI and SCK output, all others input */
@@ -21,8 +22,8 @@ void SPI_init(){
     MCUCR &= ~(0b11<<ISC00);
 }
 
+// Performs a blocking SPI write: sends one byte and waits until the transfer is complete (received data is ignored).
 void SPI_write(char cData) {
-	
 	
 	/* Start transmission */
 	SPDR = cData;
@@ -32,12 +33,14 @@ void SPI_write(char cData) {
 	
 }
 
+// Performs a full-duplex SPI transfer: sends one byte and returns the byte received at the same time.
 uint8_t SPI_transfer(uint8_t cData) {
     SPDR = cData;
     while (!(SPSR & (1 << SPIF)));
     return SPDR;  // Return received byte
 }
 
+// Performs an SPI read by sending a dummy byte and returning the received byte from the slave.
 char SPI_read() {
 	
 	/* Start shifting registers by putting a char in the register */
