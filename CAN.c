@@ -1,3 +1,83 @@
+/*
+ * CAN.c
+ *
+ * Created: 13.10.2025
+ *  Author: Mohamed Abosreea , Kariman Helmy , Marwa Elbadawy
+ */ 
+
+#include "CAN.h"
+#include "bit_macros.h"
+
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/delay.h>
+
+volatile int flag = 0;
+
+// ISR for external interrupt INT0: sets a flag when a CAN interrupt occurs.
+ISR(INT0_vect){
+	flag = 1;
+}
+
+// Initializes the MCP2515 CAN controller and configures INT0 for CAN receive interrupts.
+void can_init(uint8_t mode){
+    
+	mcp_2515_init(mode);
+
+	mcp_2515_write(MCP_CANINTE, MCP_RX_INT);
+
+	// Disable global interrupts
+	cli();
+	// Interrupt on falling edge PD2
+	set_bit(MCUCR, ISC01);
+	clear_bit(MCUCR, ISC00);
+	// Enable interrupt on PD2
+	set_bit(GICR,INT0);
+	// Enable global interrupts
+	sei();
+}
+
+// Returns 1 if a CAN interrupt has occurred since last check, otherwise 0.
+uint8_t can_interrupt(){
+	if (flag){	
+		flag = 0;
+		return 1;
+	}
+	return 0;
+}
+
+// Determines which RX buffer triggered the interrupt, reads and returns the received CAN message.
+can_message can_handle_messages(){
+	uint8_t v[2] = {0};
+	// Select which mailbox is used
+	can_int_vect(v);
+	can_message message1;
+	// if message is recievced in mailbox 0
+	if (v[0]){
+		can_message_receive(0, &message1);
+		mcp_2515_bit_modify(MCP_CANINTF, 1, 0);
+		can_int_vect(v);
+		if (!v[1]){
+			flag = 0;
+		}
+		return message1;
+	}
+	
+	can_message message2;
+	// if message is recievced in mailbox 1
+	if (v[1]){
+		can_message_receive(1, &message2);
+		mcp_2515_bit_modify(MCP_CANINTF, 2, 0);
+		can_int_vect(v);
+		if (!v[0]){
+			flag = 0;
+		}
+		return message2;
+	}
+	
+	return message1;
+}
+
 // Sends a CAN message using one of the three transmit buffers in a round-robin manner.
 void can_message_send(can_message* message){
 	static int buffer_number = 0;
@@ -14,11 +94,11 @@ void can_message_send(can_message* message){
 		}
 	}
 	
-	// Standard CAN identifier field (ID)
+	// Standard CAN identifier field (message ID)
 	unsigned int ID = message->id;
 	char id_high = ID / 8;
 	char id_low = ID % 8;
-	id_low = id_low*0b100000;
+	id_low = id_low * 0b100000;
 	mcp_2515_write(MCP_TXB0SIDH + 16 * buffer_number, id_high);
 	mcp_2515_write(MCP_TXB0SIDL + 16 * buffer_number, id_low);
 	
@@ -34,4 +114,38 @@ void can_message_send(can_message* message){
 	
 	// Request to send message, send if successful
 	mcp_2515_request_to_send(MCP_RTS_TX0 + buffer_number);
+	
+}
+
+// Checks if the given transmit buffer has completed sending its CAN frame (1 = complete, 0 = busy).
+int can_transmit_complete(int buffer_number){
+	uint8_t transmit_flag = mcp_2515_read(MCP_CANINTF);
+	uint8_t interrupt_bits = (transmit_flag & (MCP_TX0IF + buffer_number * 2));
+	
+	if (interrupt_bits == (MCP_TX0IF + buffer_number * 2)){
+		return 0;
+	}
+	return 1;
+}
+
+// Reads a CAN message from the specified RX buffer and stores ID, length, and data into received_message.
+void can_message_receive(int rec_buff_num, can_message* received_message){
+	uint8_t id_high = mcp_2515_read(MCP_RXB0SIDH + 16 * rec_buff_num);
+	uint8_t id_low = mcp_2515_read(MCP_RXB0SIDL + 16 * rec_buff_num);
+	id_low = (id_low & 0b11100000);
+	received_message->id = 0b1000 * id_high + id_low / 0b100000;
+	
+	uint8_t data_length = mcp_2515_read(MCP_RXB0DLC + 16 * rec_buff_num);
+	received_message->length = (data_length & 0b1111);
+	
+	for (uint8_t byte = 0; byte < data_length; byte++) {
+		received_message->data[byte] = mcp_2515_read(MCP_RXB0DM + byte + 16 * rec_buff_num);
+	}
+}
+
+// Reads CAN interrupt flags and sets v[0] and v[1] if RX buffer 0 or 1 has a pending message.
+void can_int_vect(int* v) { 
+	uint8_t int_flag = mcp_2515_read(MCP_CANINTF);
+	v[0] = (int_flag & MCP_RX0IF);
+	v[1] = (int_flag & MCP_RX1IF);
 }
