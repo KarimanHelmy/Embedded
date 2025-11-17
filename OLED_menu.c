@@ -130,9 +130,6 @@ void printTitle(char* title){
 	}
 	oled_pos(2,0);
 }
-
-// Draws the current menu on the OLED, highlighting the selected item and handling scrolling.
-
 	
 // Draws the current menu on the OLED, highlighting the selected item and handling scrolling.
 void oled_menu_print(menu_t *menu) {
@@ -208,4 +205,5 @@ void oled_menu_print(menu_t *menu) {
 	}
 	
 }
+
 
