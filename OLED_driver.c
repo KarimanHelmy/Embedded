@@ -33,7 +33,7 @@ volatile char* ext_oled_data = OLED_DATA_ADDRESS;
 
 volatile oled_position_t position;
 
-// This function is used to check if we reached the borders of the OLED
+// Checks and wraps the current text drawing position when reaching the OLED edges.
 void oled_is_out_of_bounds() {
 	if (position.col > 127) {
 		position.col -= 128;
@@ -44,6 +44,7 @@ void oled_is_out_of_bounds() {
 	}
 }
 
+// Sends a single command byte to the OLED controller over SPI.
 void write_command(uint8_t command){
 	// Select sending command to the data-commant line
     clear_bit(PORTD,PD0);
@@ -55,6 +56,7 @@ void write_command(uint8_t command){
 
 }
 
+// Sends a single data byte to the OLED controller over SPI.
 void write_data(uint8_t data){
 	// Select sending data to the data-commant line
     set_bit(PORTD,PD0);
@@ -65,6 +67,7 @@ void write_data(uint8_t data){
     set_bit(PORTB, PB4);
 }
 
+// Writes a character in normal mode.
 int oled_put_char(unsigned char c){
 	uint8_t printChar = c-32;
 	
@@ -77,6 +80,7 @@ int oled_put_char(unsigned char c){
 	return 0;
 }
 
+// Writes a character in dark mode (inverted pixels).
 int oled_inv_put_char(unsigned char c){
 	uint8_t printChar = c-32;
 	
@@ -89,13 +93,13 @@ int oled_inv_put_char(unsigned char c){
 	return 0;
 }
 
+// Sets the memory addressing mode of the OLED (horizontal, vertical, or page).
 void oled_set_adressing_mode(adressing_mode mode) {
 	write_command(0x20);
 	write_command(mode);
 }
 
-// ------------------ functions declared in header below this line---------------------
-
+// Prints formatted text in normal mode.
 void oled_printf(char* data, ...){
 	va_list args;
 	va_start(args, data);
@@ -104,6 +108,7 @@ void oled_printf(char* data, ...){
 	
 }
 
+// Prints formatted text in dark mode.
 void oled_inv_printf(char* data, ...){
 	va_list args;
 	va_start(args, data);
@@ -112,6 +117,7 @@ void oled_inv_printf(char* data, ...){
 	
 }
 
+// Returns 1 if the given string is too long to fit in a single OLED line with current font size.
 int long_string(char* data){
 	if (strlen(data)*fontSize > 128){
 		return 1;
@@ -119,10 +125,12 @@ int long_string(char* data){
 	return 0;
 }
 
+// Moves the cursor so that the given title string is horizontally centered on the screen.
 void oled_align_centre(char* title) {
-	oled_goto_column(64- fontSize*strlen(title)/2);
+	oled_goto_column(64 - fontSize*strlen(title)/2);
 }
 
+// Initializes the OLED display, SPI, GPIO lines, and basic display parameters.
 void oled_init(){
     SPI_init();
     set_bit(DDRD, PD0);      // PD0 is used for Data/Command line
@@ -158,10 +166,11 @@ void oled_init(){
     // Note: Command 0xAD (Master Configuration) is NOT supported on SSD1309 ? removed!
 
     write_command(0xA4);     // Output follows RAM content (not forced ON)
-    write_command(0xA6);     // Normal display (not inverted)
+    write_command(0xA6);     // Normal display 
     write_command(0xAF);     // Display ON
 }
 
+// Moves the OLED cursor to the specified text line (0~7) without changing the column.
 void oled_goto_line(int line){
 	if (line > 7 || line < 0) {
 		return 0;
@@ -174,6 +183,7 @@ void oled_goto_line(int line){
 	}
 }
 
+// Moves the OLED cursor to the specified pixel column (0~127) without changing the row.
 void oled_goto_column(int column){
 	if (column > 127 || column < 0) {
 		return 0;
@@ -192,15 +202,17 @@ void oled_goto_column(int column){
 	
 }
 
+// Moves the OLED cursor to a given character position on the current line based on font size.
 void oled_goto_letter(int letterPlace){
 	if (letterPlace <= 0) {
 		oled_goto_column(0);
 	}
 	else {
-		oled_goto_column(letterPlace*fontSize-1);
+		oled_goto_column(letterPlace*fontSize - 1);
 	}
 }
 
+// Clears  all pixels in the specified line.
 void oled_clear_line(int line){
 	oled_pos(line, 0);
 	
@@ -210,16 +222,19 @@ void oled_clear_line(int line){
 	oled_goto_line(line);
 }
 
+// Fills the specified line with all pixels set .
 void oled_fill_line(int line){
-	oled_pos(line,0);
+	oled_pos(line, 0);
 	
-	for (int col =0; col < 128; col++) {
+	for (int col = 0; col < 128; col++) {
 		write_data(~0b00000000);
 	}
 	oled_goto_line(line);
 }
 
+// Sets the OLED cursor to the given row and column position.
 void oled_pos(int row, int column){
 	oled_goto_line(row);
 	oled_goto_column(column);	
+
 }
